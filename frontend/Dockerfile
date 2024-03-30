@@ -1,6 +1,23 @@
-FROM node:20
+# Development stage
+FROM node:20 as dev
+RUN mkdir /app
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . ./
+CMD ["npm", "start"]
 
-RUN apt-get update
+# Build stage
+FROM node:20 as build
+RUN mkdir /app
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
-RUN npm install -g npm@9.7.2 && \
-    npm install -g create-react-app
+# Production stage
+FROM nginx:alpine as prod
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
