@@ -1,11 +1,14 @@
 import styled from "@emotion/styled";
 import { Chess } from "chess.js";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation } from "react-query";
 
+import { updateGame } from "../../api/game/index";
+import { Game } from "../../types";
 import { DefaultButton } from "../buttons";
 import { ChessBoard } from "../chessboard";
 import { GameControls } from "../gameControls";
-import { SubTitle, Title } from "../texts";
+import { Title3 } from "../texts";
 import Engine from "./stockfish/engine";
 
 const Wrapper = styled.div`
@@ -23,14 +26,41 @@ const LEVELS = {
   "Hard 😵": 18,
 };
 
-export const GameWithAIBoard = () => {
+interface GameWithAIBoardProps {
+  gameData: Game;
+}
+
+export const GameWithAIBoard = ({ gameData }: GameWithAIBoardProps) => {
+  const [gamePosition, setGamePosition] = useState("");
   const engine = useMemo(() => new Engine(), []);
-  const game = useMemo(() => new Chess(), []);
+  const game = useMemo(() => {
+    const chess = new Chess();
+    chess.loadPgn(gameData.PGN);
+    setGamePosition(chess.fen());
+
+    return chess;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [stockfishLevel, setStockfishLevel] = useState(2);
+  const mutation = useMutation((pgn: string) =>
+    updateGame(gameData.id, gameData.name, pgn),
+  );
 
-  const [gamePosition, setGamePosition] = useState(game.fen());
+  useEffect(() => {
+    // make AI do first move if it is his turn
+    const side = localStorage.getItem("side");
+    if (side && game.turn() !== side[0]) {
+      findBestMove();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  function findBestMove() {
+  const setGamePositionWithSave = (newPos: string) => {
+    setGamePosition(newPos);
+    mutation.mutate(game.pgn());
+  };
+
+  const findBestMove = () => {
     engine.evaluatePosition(game.fen());
     let moveMade = false;
 
@@ -43,24 +73,29 @@ export const GameWithAIBoard = () => {
           promotion: bestMove.substring(4, 5),
         });
 
-        setGamePosition(game.fen());
+        setGamePositionWithSave(game.fen());
       }
     });
-  }
+  };
 
   return (
     <Wrapper>
-      <Title>Game With Chess Engine</Title>
-      <SubTitle>
-        Compete with Strong open source chess engine{" "}
+      <Title3 noOverflow>
+        Game With{" "}
         <a rel="noreferrer" target="_blank" href="https://stockfishchess.org/">
           Stockfish
         </a>
-      </SubTitle>
-      <GameControls game={game} setGamePosition={setGamePosition} type="AI" />
+        : {gameData.name}
+      </Title3>
+      <GameControls
+        game={game}
+        setGamePosition={setGamePositionWithSave}
+        type="AI"
+      />
       <LevelsWrapper>
         {Object.entries(LEVELS).map(([level, depth]) => (
           <DefaultButton
+            key={level}
             style={{
               color: "black",
               backgroundColor: depth === stockfishLevel ? "#B58863" : "#f0d9b5",

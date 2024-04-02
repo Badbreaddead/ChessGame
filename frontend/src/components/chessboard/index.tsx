@@ -5,6 +5,8 @@ import { ReactElement, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Piece } from "react-chessboard/dist/chessboard/types";
 
+import { SIDES } from "../../types/index";
+
 const CUSTOM_DARK_SQUARE_STYLE = {
   backgroundColor: "#865745",
   backgroundImage: 'url("wood-pattern.png")',
@@ -52,6 +54,12 @@ const PIECES = [
   { piece: "bK", pieceHeight: 1.6 },
 ];
 
+const TurnContainer = styled.div`
+  position: absolute;
+  left: 0;
+  padding: 24px;
+`;
+
 const pieceComponents: {
   [key: string]: ({
     squareWidth,
@@ -63,7 +71,7 @@ const pieceComponents: {
 } = {};
 
 PIECES.forEach(({ piece, pieceHeight }) => {
-  pieceComponents[piece] = ({ squareWidth, square }) => (
+  pieceComponents[piece] = ({ squareWidth }) => (
     <div
       style={{
         width: squareWidth,
@@ -99,13 +107,20 @@ interface ChessBoardProps {
   gamePosition: string;
   setGamePosition: (gamePosition: string) => void;
   doAIMove?: () => void;
+  boardOrientation?: "white" | "black";
 }
+
+const TURNS = {
+  w: "white",
+  b: "black",
+};
 
 export const ChessBoard = ({
   game,
   gamePosition,
   setGamePosition,
   doAIMove,
+  boardOrientation,
 }: ChessBoardProps) => {
   const [message, setMessage] = useState("");
   const [activeSquare, setActiveSquare] = useState("");
@@ -154,6 +169,7 @@ export const ChessBoard = ({
 
   return (
     <Wrapper>
+      <TurnContainer>Turn: {TURNS[game.turn()]}</TurnContainer>
       <Chessboard
         id="Styled3DBoard"
         position={gamePosition}
@@ -170,6 +186,9 @@ export const ChessBoard = ({
         }}
         onMouseOverSquare={(sq) => setActiveSquare(sq)}
         onMouseOutSquare={(sq) => setActiveSquare("")}
+        boardOrientation={
+          boardOrientation || (localStorage.getItem("side") as SIDES) || "white"
+        }
       />
       <Snackbar
         open={!!message}

@@ -1,23 +1,27 @@
-# Development stage
-FROM node:20 as dev
-RUN mkdir /app
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . ./
-CMD ["npm", "start"]
+FROM node:20 AS prod
 
-# Build stage
-FROM node:20 as build
-RUN mkdir /app
 WORKDIR /app
-COPY package*.json ./
+
+COPY package.json /app
+
 RUN npm install
-COPY . .
+
+COPY . /app
+
 RUN npm run build
 
-# Production stage
-FROM nginx:alpine as prod
-COPY --from=build /app/build /usr/share/nginx/html
+FROM nginx:alpine
+
+WORKDIR /usr/local/bin
+
+COPY --from=prod /app/build /usr/share/nginx/html
+
+COPY generate-config.sh .
+
+COPY custom-nginx.template /etc/nginx/conf.d/
+
+RUN chmod +x generate-config.sh
+
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+
+ENTRYPOINT [ "/bin/sh", "generate-config.sh"]

@@ -24,7 +24,7 @@ const ControlButtons = styled.div`
 interface GameControlsProps {
   game: Chess;
   setGamePosition: (gamePosition: string) => void;
-  type?: "mainPage" | "AI";
+  type?: "AI";
 }
 
 export const GameControls = ({
@@ -73,14 +73,12 @@ export const GameControls = ({
   return (
     <Wrapper>
       <ControlButtons>
-        {type !== "mainPage" ? (
-          <DefaultButton
-            onClick={openExitGameModal}
-            style={{ marginRight: "auto" }}
-          >
-            Exit The Game
-          </DefaultButton>
-        ) : null}
+        <DefaultButton
+          onClick={openExitGameModal}
+          style={{ marginRight: "auto" }}
+        >
+          Exit The Game
+        </DefaultButton>
         <DefaultButton onClick={openResetGameModal}>
           Reset The Game
         </DefaultButton>

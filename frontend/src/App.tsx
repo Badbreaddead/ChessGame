@@ -1,35 +1,47 @@
-import "./App.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
+import "./App.css";
+import { AppLogic } from "./AppLogic";
 import { Root } from "./pages";
-import { LocalGame } from "./pages/LocalGame";
 import { GameWithAI } from "./pages/GameWithAI";
+import { LocalGame } from "./pages/LocalGame";
 import { OnlineGame } from "./pages/OnlineGame";
 import { routes } from "./routes";
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Root />,
-  },
-  {
-    path: `${routes.online}/:gameId`,
-    element: <OnlineGame />,
-  },
-  {
-    path: `${routes.ai}/:gameId`,
-    element: <GameWithAI />,
-  },
-  {
-    path: `${routes.local}/:gameId`,
-    element: <LocalGame />,
+    path: "",
+    element: <AppLogic />,
+    children: [
+      {
+        index: true,
+        element: <Root />,
+      },
+      {
+        path: `${routes.online}/:gameId`,
+        element: <OnlineGame />,
+      },
+      {
+        path: `${routes.ai}/:gameId`,
+        element: <GameWithAI />,
+      },
+      {
+        path: `${routes.local}/:gameId`,
+        element: <LocalGame />,
+      },
+    ],
   },
 ]);
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <div className="App">
-      <RouterProvider router={router} />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
     </div>
   );
 }
