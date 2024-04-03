@@ -3,24 +3,32 @@ package controller
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/notnil/chess/pgn"
+	"github.com/notnil/chess"
 
 	"chess-backend/model"
 	"chess-backend/repository"
 )
 
 func IsPGNValid(pgnStr string) bool {
-	r := strings.NewReader(pgnStr)
+	pgnReader := strings.NewReader(pgnStr)
 
-	_, err := pgn.Decode(r)
-	if err != nil {
-		return false
+	buffer := make([]byte, 10)
+	for {
+		_, err := pgnReader.Read(buffer)
+		if err != nil {
+			if err != io.EOF {
+				fmt.Println(err)
+			}
+			break
+		}
 	}
-	return true
+	_, err := chess.PGN(pgnReader)
+	return err == nil
 }
 
 type GameController struct {
@@ -159,6 +167,12 @@ func (m *GameController) UpdateGame(g *gin.Context) {
 			g.JSON(model.ResponseCodes[400], gin.H{"status": model.ResponseStatuses["failed"], "msg": "Name missing in body"})
 			return
 		}
+
+		if !IsPGNValid(body.PGN) {
+			g.JSON(model.ResponseCodes[400], gin.H{"status": model.ResponseStatuses["failed"], "msg": "provided invalid PGN"})
+			return
+		}
+
 		repo_game := repository.NewGameRepository(db)
 		game, err2 := repo_game.UpdateGame(body, userId, gameId)
 		if err2 != nil {
