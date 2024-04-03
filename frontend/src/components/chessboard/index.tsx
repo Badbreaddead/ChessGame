@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import Snackbar from "@mui/material/Snackbar";
 import { Chess, Square } from "chess.js";
-import { ReactElement, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Piece } from "react-chessboard/dist/chessboard/types";
 
@@ -125,12 +125,35 @@ export const ChessBoard = ({
   boardOrientation,
   canMove,
 }: ChessBoardProps) => {
+  const [final, setFinal] = useState("");
   const [message, setMessage] = useState("");
   const [activeSquare, setActiveSquare] = useState("");
 
   const handleClose = () => {
     setMessage("");
   };
+
+  const checkEnd = () => {
+    if (game.isCheckmate()) {
+      setFinal(`${game.turn() === "b" ? "White side" : "Black side"} won!`);
+      setMessage(`${game.turn() === "b" ? "White side" : "Black side"} won!`);
+      return true;
+    } else if (game.isStalemate()) {
+      setFinal("Stalemate!");
+      setMessage("Stalemate!");
+      return true;
+    } else if (game.isGameOver() || game.isDraw()) {
+      setFinal("The game is finished");
+      setMessage("The game is finished");
+      return true;
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    checkEnd();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gamePosition, game]);
 
   function onDrop(sourceSquare: Square, targetSquare: Square, piece: Piece) {
     const whosTurn = game.turn();
@@ -145,6 +168,11 @@ export const ChessBoard = ({
       return false;
     }
 
+    if (checkEnd()) {
+      setGamePosition(game.fen());
+      return false;
+    }
+
     try {
       game.move({
         from: sourceSquare,
@@ -153,15 +181,6 @@ export const ChessBoard = ({
       });
 
       setGamePosition(game.fen());
-
-      if (game.isCheckmate()) {
-        setMessage(`${game.turn() === "b" ? "White side" : "Black side"} won!`);
-        return true;
-      }
-      if (game.isGameOver() || game.isDraw()) {
-        setMessage("The game is finished");
-        return false;
-      }
 
       if (doAIMove) {
         doAIMove();
@@ -178,6 +197,8 @@ export const ChessBoard = ({
     <Wrapper>
       <SideInfo>
         <div>Turn: {TURNS[game.turn()]}</div>
+        <br />
+        {final && <div>Game Result: {final}</div>}
         <br />
         <div>Game History: {game.pgn()}</div>
       </SideInfo>

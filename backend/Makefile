@@ -1,0 +1,3 @@
+migration_up: migrate -path migrations/ -database "postgresql://postgres:postgres@localhost:5432/chess_game?sslmode=disable" -verbose up
+migration_down: migrate -path migrations/ -database "postgresql://postgres:postgres@localhost:5432/chess_game?sslmode=disable" -verbose down
+migration_fix: migrate -path migrations/ -database "postgresql://postgres:postgres@localhost:5432/chess_game?sslmode=disable" force VERSION

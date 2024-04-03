@@ -18,29 +18,29 @@ type App struct {
 	Routes *gin.Engine
 }
 
-func (a *App) CreateConnection(){
+func (a *App) CreateConnection() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-    "password=%s dbname=%s sslmode=disable",
-    host, port, user, password, dbname)
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Fatal(err)
 	}
 	a.DB = db
 }
-   
+
 func (a *App) CreateRoutes() {
 	router := gin.Default()
 
 	// TODO add a domain here when deployed
-    router.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"http://localhost:3000", "https://localhost:3000"},
-        AllowMethods:     []string{"PUT", "PATCH", "POST", "GET", "OPTIONS", "DELETE"},
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "https://localhost:3000"},
+		AllowMethods:     []string{"PUT", "PATCH", "POST", "GET", "OPTIONS", "DELETE"},
 		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type", "Content-Length", "X-CSRF-Token", "Token", "session", "Origin", "Host", "Connection", "Accept-Encoding", "Accept-Language", "X-Requested-With"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
-		MaxAge: 24 * time.Hour,
-    }))
+		MaxAge:           24 * time.Hour,
+	}))
 	router.Use(controller.IdentifyUser)
 
 	// serving RESTful endpoints
@@ -59,7 +59,7 @@ func (a *App) CreateRoutes() {
 	// if one day it becomes wide spread app we could isolate it to a dedicated service
 	onlineController := controller.NewOnlineController(a.DB)
 	router.Any("/online", onlineController.TransmitGameData)
-	   
+
 	// serving static frontend files
 	// if one day it becomes wide spread app we could isolate it to a dedicated service
 	path := static.LocalFile("../frontend/build", true)
@@ -70,7 +70,7 @@ func (a *App) CreateRoutes() {
 	a.Routes = router
 }
 
-func (a *App) Run(){
-	a.Routes.Run(":80")
-	// a.Routes.RunTLS(":443", "../tls/server.crt", "../tls/server.key")
+func (a *App) Run() {
+	// a.Routes.Run(":80")
+	a.Routes.RunTLS(":443", "../tls/server.crt", "../tls/server.key")
 }

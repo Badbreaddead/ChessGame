@@ -134,7 +134,6 @@ export const OnlineGameBoard = ({ gameData }: OnlineGameBoardProps) => {
   };
 
   const canMove = () => {
-    debugger;
     if (!isOwner && !isOpponent) {
       setMessage(
         "You are not playing... Ask game creator to promote you to player",
@@ -166,10 +165,10 @@ export const OnlineGameBoard = ({ gameData }: OnlineGameBoardProps) => {
 
   return (
     <Wrapper>
-      <Title3>Online game</Title3>
+      <Title3>Online game: {gameData.name}</Title3>
       {isOwner && (
         <>
-          <GameControls game={game} setGamePosition={setGamePosition} />
+          <GameControls game={game} setGamePosition={setGamePositionWithSave} />
           <ParticipantsWrapper>
             <br />
             <ParticipantsContainer>

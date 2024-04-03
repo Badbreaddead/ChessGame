@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
-# TODO move all passwords to secure storage
-export PGPASSWORD=postgres;
-psql -v ON_ERROR_STOP=1 --username "postgres" --dbname "postgres" <<-EOSQL
-  CREATE DATABASE chess;
-  GRANT ALL PRIVILEGES ON DATABASE chess TO "postgres";
+
+export PGPASSWORD=$2;
+
+psql -v ON_ERROR_STOP=1 --username $1 --dbname "postgres" <<-EOSQL
+  CREATE DATABASE chess_game;
+  GRANT ALL PRIVILEGES ON DATABASE chess_game TO $1;
 EOSQL
