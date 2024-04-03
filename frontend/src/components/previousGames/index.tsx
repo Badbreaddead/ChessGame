@@ -36,13 +36,13 @@ export const PreviousGames = ({ onClick }: PreviousGamesProps) => {
     return <Error error={error} />;
   }
 
-  if (isLoading || !data?.data) {
+  if (isLoading || !data) {
     return <Loading />;
   }
 
   return (
     <>
-      {data.data.length > 0 ? (
+      {data?.data ? (
         <>
           <Title5>Previous Games</Title5>
           <br />

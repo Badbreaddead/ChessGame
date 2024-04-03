@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 
 	"chess-backend/controller"
-	"chess-backend/middleware"
 )
 
 type App struct {
@@ -28,37 +28,49 @@ func (a *App) CreateConnection(){
 	}
 	a.DB = db
 }
-
-// TODO if one day it becomes wide spread app - socket connection for online games would be a dedicated service
-// SSE or Sockets here
    
 func (a *App) CreateRoutes() {
 	router := gin.Default()
 
-	// TODO add more domain here when deployed
+	// TODO add a domain here when deployed
     router.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"http://localhost:3000"},
+        AllowOrigins:     []string{"http://localhost:3000", "https://localhost:3000"},
         AllowMethods:     []string{"PUT", "PATCH", "POST", "GET", "OPTIONS", "DELETE"},
 		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type", "Content-Length", "X-CSRF-Token", "Token", "session", "Origin", "Host", "Connection", "Accept-Encoding", "Accept-Language", "X-Requested-With"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge: 24 * time.Hour,
     }))
+	router.Use(controller.IdentifyUser)
 
-	router.Use(middleware.IdentifyUser)
+	// serving RESTful endpoints
+	rest := router.Group("/api")
+	{
+		gameController := controller.NewGameController(a.DB)
+		rest.GET("/games", gameController.GetGames)
+		rest.GET("/game/:gameId", gameController.GetGame)
+		rest.POST("/game", gameController.CreateGame)
+		rest.PATCH("/game/:gameId", gameController.UpdateGame)
+		rest.Any("/user", controller.PassUserSet)
+		rest.POST("/user/name", controller.SetUserName)
+	}
 
-	mangaController := controller.NewMangaController(a.DB)
-	gameController := controller.NewGameController(a.DB)
-	router.GET("/games", gameController.GetGames)
-	router.GET("/game/:gameId", gameController.GetGame)
-	router.POST("/game", gameController.CreateGame)
-	router.PATCH("/game/:gameId", gameController.UpdateGame)
-
-	router.GET("/manga", mangaController.GetManga)
-	router.POST("/manga", mangaController.InsertManga)
+	// serving Websockets connection for online games
+	// if one day it becomes wide spread app we could isolate it to a dedicated service
+	onlineController := controller.NewOnlineController(a.DB)
+	router.Any("/online", onlineController.TransmitGameData)
+	   
+	// serving static frontend files
+	// if one day it becomes wide spread app we could isolate it to a dedicated service
+	path := static.LocalFile("../frontend/build", true)
+	router.Use(static.Serve("/", path))
+	router.NoRoute(func(c *gin.Context) {
+		c.File("../frontend/build/index.html")
+	})
 	a.Routes = router
 }
 
 func (a *App) Run(){
-	a.Routes.Run(":8080")
+	a.Routes.Run(":80")
+	// a.Routes.RunTLS(":443", "../tls/server.crt", "../tls/server.key")
 }

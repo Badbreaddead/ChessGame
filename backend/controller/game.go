@@ -142,18 +142,11 @@ func (m *GameController) UpdateGame(g *gin.Context) {
 			return
 		}
 		repo_game := repository.NewGameRepository(db)
-		updated, err2 := repo_game.UpdateGame(body, userId, gameId)
+		game, err2 := repo_game.UpdateGame(body, userId, gameId)
 		if err2 != nil {
 			g.JSON(err2.Status, gin.H{"status": model.ResponseStatuses["error"], "data": err2, "msg": err2.Title})
 		} else {
-			data := map[string]bool { 
-				"updated": updated,
-			}
-			msg := "no rows affected"
-			if updated {
-				msg = "updated game"
-			}
-			g.JSON(model.ResponseCodes[200], gin.H{"status": model.ResponseStatuses["success"], "data": data, "msg": msg})
+			g.JSON(model.ResponseCodes[200], gin.H{"status": model.ResponseStatuses["success"], "data": game, "msg": "updated game successfully"})
 		}
 	} else {
 		log.Println(err)

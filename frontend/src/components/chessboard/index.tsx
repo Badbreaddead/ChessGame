@@ -9,13 +9,13 @@ import { SIDES } from "../../types/index";
 
 const CUSTOM_DARK_SQUARE_STYLE = {
   backgroundColor: "#865745",
-  backgroundImage: 'url("wood-pattern.png")',
+  backgroundImage: 'url("/wood-pattern.png")',
   backgroundSize: "cover",
 };
 
 const CUSTOM_LIGHT_SQUARE_STYLE = {
   backgroundColor: "#e0c094",
-  backgroundImage: 'url("wood-pattern.png")',
+  backgroundImage: 'url("/wood-pattern.png")',
   backgroundSize: "cover",
 };
 
@@ -35,7 +35,7 @@ const BOARD_STYLE = {
   borderTopRightRadius: "8px",
   padding: "8px 8px 12px",
   background: "#e0c094",
-  backgroundImage: 'url("wood-pattern.png")',
+  backgroundImage: 'url("/wood-pattern.png")',
   backgroundSize: "cover",
 };
 
@@ -54,10 +54,11 @@ const PIECES = [
   { piece: "bK", pieceHeight: 1.6 },
 ];
 
-const TurnContainer = styled.div`
+const SideInfo = styled.div`
   position: absolute;
   left: 0;
   padding: 24px;
+  width: 200px;
 `;
 
 const pieceComponents: {
@@ -108,6 +109,7 @@ interface ChessBoardProps {
   setGamePosition: (gamePosition: string) => void;
   doAIMove?: () => void;
   boardOrientation?: "white" | "black";
+  canMove?: () => boolean;
 }
 
 const TURNS = {
@@ -121,6 +123,7 @@ export const ChessBoard = ({
   setGamePosition,
   doAIMove,
   boardOrientation,
+  canMove,
 }: ChessBoardProps) => {
   const [message, setMessage] = useState("");
   const [activeSquare, setActiveSquare] = useState("");
@@ -135,6 +138,10 @@ export const ChessBoard = ({
 
     if (whosTurn !== moveSide) {
       setMessage("It is another side turn");
+      return false;
+    }
+
+    if (canMove && !canMove()) {
       return false;
     }
 
@@ -169,7 +176,11 @@ export const ChessBoard = ({
 
   return (
     <Wrapper>
-      <TurnContainer>Turn: {TURNS[game.turn()]}</TurnContainer>
+      <SideInfo>
+        <div>Turn: {TURNS[game.turn()]}</div>
+        <br />
+        <div>Game History: {game.pgn()}</div>
+      </SideInfo>
       <Chessboard
         id="Styled3DBoard"
         position={gamePosition}

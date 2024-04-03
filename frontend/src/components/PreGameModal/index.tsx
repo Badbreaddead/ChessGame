@@ -66,7 +66,7 @@ export const PreGameModal = ({ game }: PreGameModalProps) => {
     if (side) {
       setSide(side as SIDES);
     }
-  }, []);
+  }, [game]);
 
   const handleChangeMode = (
     _: React.MouseEvent<HTMLElement>,

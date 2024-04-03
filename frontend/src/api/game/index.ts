@@ -1,21 +1,22 @@
+import { BACKEND_ADDRESS_API } from "../config";
 import { get, patch, post } from "../request";
 
 export const updateGame = (gameId: string, name: string, pgn: string) => {
-  return patch(`http://localhost:8080/game/${gameId}`, {
+  return patch(`${BACKEND_ADDRESS_API}/game/${gameId}`, {
     body: JSON.stringify({ name, pgn }),
   });
 };
 
 export const createGame = (name: string, pgn: string) => {
-  return post("http://localhost:8080/game", {
+  return post(`${BACKEND_ADDRESS_API}/game`, {
     body: JSON.stringify({ name, pgn }),
   });
 };
 
 export const fetchGames = () => {
-  return get("http://localhost:8080/games");
+  return get(`${BACKEND_ADDRESS_API}/games`);
 };
 
 export const fetchGame = (gameId: string) => () => {
-  return get(`http://localhost:8080/game/${gameId}`);
+  return get(`${BACKEND_ADDRESS_API}/game/${gameId}`);
 };
